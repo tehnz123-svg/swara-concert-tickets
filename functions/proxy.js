@@ -1,26 +1,50 @@
-const express = require('express');
 const axios = require('axios');
-const cors = require('cors');
 
-const app = express();
-app.use(cors({ origin: 'http://127.0.0.1:5500' }));
-app.use(express.json());
-
-app.post('/proxy/tickets', async (req, res) => {
+exports.handler = async function (event, context) {
   try {
+    // Handle preflight OPTIONS request
+    if (event.httpMethod === 'OPTIONS') {
+      return {
+        statusCode: 200,
+        headers: {
+          'Access-Control-Allow-Origin': 'https://swara-concert-tickets.netlify.app',
+          'Access-Control-Allow-Methods': 'POST, OPTIONS',
+          'Access-Control-Allow-Headers': 'Content-Type'
+        },
+        body: ''
+      };
+    }
+
+    // Parse incoming JSON body
+    const body = JSON.parse(event.body);
+
+    // Forward request to Google Apps Script
     const response = await axios.post(
       'https://script.google.com/macros/s/AKfycbyLFJOebiOiym8EcGXfFG3F-Z1hyYfRxgrgTADA0_mpWeF9X9dy1hMZdMexsTOpUmvk/exec',
-      req.body,
+      body,
       { headers: { 'Content-Type': 'application/json' } }
     );
-    res.json(response.data);
+
+    // Return response with CORS headers
+    return {
+      statusCode: 200,
+      headers: {
+        'Access-Control-Allow-Origin': 'https://swara-concert-tickets.netlify.app',
+        'Access-Control-Allow-Methods': 'POST, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type'
+      },
+      body: JSON.stringify(response.data)
+    };
   } catch (error) {
     console.error('Proxy error:', error.message);
-    res.status(500).json({ status: 'error', message: error.message });
+    return {
+      statusCode: 500,
+      headers: {
+        'Access-Control-Allow-Origin': 'https://swara-concert-tickets.netlify.app',
+        'Access-Control-Allow-Methods': 'POST, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type'
+      },
+      body: JSON.stringify({ status: 'error', message: error.message })
+    };
   }
-});
-
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`Proxy server running on port ${PORT}`);
-});
+};

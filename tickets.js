@@ -84,7 +84,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
             // Prepare JSON data
             const jsonData = {
-                timestamp: new Date().toISOString(),
                 primaryName,
                 primarySANumber,
                 email,

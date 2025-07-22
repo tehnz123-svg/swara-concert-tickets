@@ -1,8 +1,4 @@
 document.addEventListener('DOMContentLoaded', function () {
-    const decreaseBtn = document.getElementById('decreaseTickets');
-    const increaseBtn = document.getElementById('increaseTickets');
-    const ticketCount = document.getElementById('ticketCount');
-    const additionalContainer = document.getElementById('additionalTicketsContainer');
     const ticketForm = document.getElementById('ticketForm');
     const paymentProofInput = document.getElementById('paymentProof');
     const modal = new bootstrap.Modal(document.getElementById('ticketModal'), { backdrop: 'static', keyboard: false });
@@ -10,8 +6,6 @@ document.addEventListener('DOMContentLoaded', function () {
     const modalMessage = document.getElementById('modalMessage');
     const modalSpinner = document.getElementById('modalSpinner');
     const modalCloseButton = document.getElementById('modalCloseButton');
-
-    let ticketQuantity = 1;
 
     function showModal(status, message) {
         modalSpinner.style.display = status === 'processing' ? 'block' : 'none';
@@ -27,48 +21,6 @@ document.addEventListener('DOMContentLoaded', function () {
             window.location.href = 'index.html';
         }
     });
-
-    decreaseBtn.addEventListener('click', function () {
-        if (ticketQuantity > 1) {
-            ticketQuantity--;
-            updateTicketCount();
-            updateAdditionalTickets();
-        } else {
-            showModal('failed', 'Minimum 1 ticket required.');
-        }
-    });
-
-    increaseBtn.addEventListener('click', function () {
-        if (ticketQuantity < 6) {
-            ticketQuantity++;
-            updateTicketCount();
-            updateAdditionalTickets();
-        } else {
-            showModal('failed', 'Maximum 6 tickets per transaction.');
-        }
-    });
-
-    function updateTicketCount() {
-        ticketCount.textContent = ticketQuantity;
-    }
-
-    function updateAdditionalTickets() {
-        additionalContainer.innerHTML = '';
-        if (ticketQuantity > 1) {
-            for (let i = 1; i < ticketQuantity; i++) {
-                const ticketDiv = document.createElement('div');
-                ticketDiv.className = 'additional-ticket';
-                ticketDiv.innerHTML = `
-                    <div class="ticket-header">
-                        <i class="fas fa-user-friends"></i>Ticket Holder #${i + 1}
-                    </div>
-                    <input type="text" class="form-control" name="additionalName${i}" placeholder="Full Name" required>
-                    <input type="text" class="form-control" name="additionalSANumber${i}" placeholder="SA Number" required>
-                `;
-                additionalContainer.appendChild(ticketDiv);
-            }
-        }
-    }
 
     ticketForm.addEventListener('submit', function (e) {
         e.preventDefault();
@@ -120,18 +72,6 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
 
-        // Collect additional ticket holders
-        const additionalTickets = [];
-        for (let i = 1; i < ticketQuantity; i++) {
-            const name = formData.get(`additionalName${i}`);
-            const saNumber = formData.get(`additionalSANumber${i}`);
-            if (!name || !saNumber) {
-                showModal('failed', `Please fill in all fields for Ticket Holder #${i + 1}.`);
-                return;
-            }
-            additionalTickets.push({ name, saNumber });
-        }
-
         // Show processing modal
         showModal('processing', 'Please wait while we process your ticket registration...');
 
@@ -149,8 +89,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 primarySANumber,
                 email,
                 whatsapp,
-                ticketCount: ticketQuantity,
-                additionalTickets,
                 paymentProof: {
                     fileName,
                     fileType,
@@ -179,9 +117,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (data.status === 'success') {
                     showModal('success', `Thank you for your purchase! Your submission has been received with Ticket ID: ${data.ticketId}. You will receive a confirmation email once approved.`);
                     ticketForm.reset();
-                    ticketQuantity = 1;
-                    updateTicketCount();
-                    updateAdditionalTickets();
                 } else {
                     showModal('failed', 'Registration failed: ' + data.message);
                 }

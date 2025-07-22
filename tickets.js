@@ -5,14 +5,30 @@ document.addEventListener('DOMContentLoaded', function () {
     const additionalContainer = document.getElementById('additionalTicketsContainer');
     const ticketForm = document.getElementById('ticketForm');
     const paymentProofInput = document.getElementById('paymentProof');
+    const modal = new bootstrap.Modal(document.getElementById('ticketModal'), { backdrop: 'static', keyboard: false });
+    const modalTitle = document.getElementById('ticketModalLabel');
+    const modalMessage = document.getElementById('modalMessage');
+    const modalSpinner = document.getElementById('modalSpinner');
+    const modalCloseButton = document.getElementById('modalCloseButton');
 
     let ticketQuantity = 1;
+
+    function showModal(status, message) {
+        modalSpinner.style.display = status === 'processing' ? 'block' : 'none';
+        modalCloseButton.style.display = status !== 'processing' ? 'block' : 'none';
+        modalTitle.textContent = status === 'processing' ? 'Processing' : status === 'success' ? 'Success' : 'Failed';
+        modalMessage.textContent = message;
+        modal.show();
+    }
 
     decreaseBtn.addEventListener('click', function () {
         if (ticketQuantity > 1) {
             ticketQuantity--;
             updateTicketCount();
             updateAdditionalTickets();
+        } else {
+            showModal('failed', 'Minimum 1 ticket required.');
+            setTimeout(() => modal.hide(), 2000);
         }
     });
 
@@ -22,7 +38,8 @@ document.addEventListener('DOMContentLoaded', function () {
             updateTicketCount();
             updateAdditionalTickets();
         } else {
-            alert('Maximum 6 tickets per transaction');
+            showModal('failed', 'Maximum 6 tickets per transaction.');
+            setTimeout(() => modal.hide(), 2000);
         }
     });
 
@@ -63,27 +80,31 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // Validate required fields
         if (!primaryName || !primarySANumber || !email || !whatsapp || !agreeTerms) {
-            alert('Please fill in all required fields and agree to the terms.');
+            showModal('failed', 'Please fill in all required fields and agree to the terms.');
+            setTimeout(() => modal.hide(), 3000);
             return;
         }
 
         // Validate payment proof
         if (!paymentProof || paymentProof.size === 0) {
-            alert('Please select a valid payment proof file (JPG, PNG, or PDF).');
+            showModal('failed', 'Please select a valid payment proof file (JPG, PNG, or PDF).');
+            setTimeout(() => modal.hide(), 3000);
             return;
         }
 
         // Validate email format
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(email)) {
-            alert('Please enter a valid email address.');
+            showModal('failed', 'Please enter a valid email address.');
+            setTimeout(() => modal.hide(), 3000);
             return;
         }
 
         // Validate WhatsApp number
         const phoneRegex = /^\+?\d{9,15}$/;
         if (!phoneRegex.test(whatsapp)) {
-            alert('Please enter a valid WhatsApp number.');
+            showModal('failed', 'Please enter a valid WhatsApp number.');
+            setTimeout(() => modal.hide(), 3000);
             return;
         }
 
@@ -91,11 +112,13 @@ document.addEventListener('DOMContentLoaded', function () {
         const allowedTypes = ['image/jpeg', 'image/png', 'application/pdf'];
         const maxSize = 5 * 1024 * 1024; // 5MB
         if (!allowedTypes.includes(paymentProof.type)) {
-            alert('Please upload a JPG, PNG, or PDF file.');
+            showModal('failed', 'Please upload a JPG, PNG, or PDF file.');
+            setTimeout(() => modal.hide(), 3000);
             return;
         }
         if (paymentProof.size > maxSize) {
-            alert('File size exceeds 5MB limit.');
+            showModal('failed', 'File size exceeds 5MB limit.');
+            setTimeout(() => modal.hide(), 3000);
             return;
         }
 
@@ -105,11 +128,15 @@ document.addEventListener('DOMContentLoaded', function () {
             const name = formData.get(`additionalName${i}`);
             const saNumber = formData.get(`additionalSANumber${i}`);
             if (!name || !saNumber) {
-                alert(`Please fill in all fields for Ticket Holder #${i + 1}.`);
+                showModal('failed', `Please fill in all fields for Ticket Holder #${i + 1}.`);
+                setTimeout(() => modal.hide(), 3000);
                 return;
             }
             additionalTickets.push({ name, saNumber });
         }
+
+        // Show processing modal
+        showModal('processing', 'Please wait while we process your ticket registration...');
 
         // Convert file to base64
         const reader = new FileReader();
@@ -153,23 +180,29 @@ document.addEventListener('DOMContentLoaded', function () {
             .then(data => {
                 console.log('Proxy Response:', data);
                 if (data.status === 'success') {
-                    alert(`Thank you for your purchase! Your submission has been received with Ticket ID: ${data.ticketId}. You will receive a confirmation email once approved.`);
+                    showModal('success', `Thank you for your purchase! Your submission has been received with Ticket ID: ${data.ticketId}. You will receive a confirmation email once approved.`);
                     ticketForm.reset();
                     ticketQuantity = 1;
                     updateTicketCount();
                     updateAdditionalTickets();
-                    window.location.href = 'index.html';
+                    setTimeout(() => {
+                        modal.hide();
+                        window.location.href = 'index.html';
+                    }, 3000);
                 } else {
-                    alert('Registration failed: ' + data.message);
+                    showModal('failed', 'Registration failed: ' + data.message);
+                    setTimeout(() => modal.hide(), 3000);
                 }
             })
             .catch(error => {
                 console.error('Fetch error:', error.message);
-                alert('Error submitting form: ' + error.message);
+                showModal('failed', 'Error submitting form: ' + error.message);
+                setTimeout(() => modal.hide(), 3000);
             });
         };
         reader.onerror = function () {
-            alert('Error reading file. Please try again.');
+            showModal('failed', 'Error reading file. Please try again.');
+            setTimeout(() => modal.hide(), 3000);
         };
         reader.readAsDataURL(paymentProof);
     });

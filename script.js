@@ -14,7 +14,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Countdown timer (only for index.html)
     if (document.getElementById('days')) {
-        const eventDate = new Date('August 15, 2025 18:30:00').getTime();
+        const eventDate = new Date('August 15, 2025 15:00:00').getTime();
 
         function updateCountdown() {
             const now = new Date().getTime();

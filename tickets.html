@@ -125,6 +125,27 @@
         </section>
     </div>
 
+    <!-- Modal for Processing/Success/Failed -->
+    <div class="modal fade" id="ticketModal" tabindex="-1" aria-labelledby="ticketModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="background: rgba(15, 12, 41, 0.95); border: 1px solid var(--accent-gold);">
+                <div class="modal-header" style="border-bottom: 1px solid var(--accent-gold);">
+                    <h5 class="modal-title" id="ticketModalLabel" style="color: var(--accent-gold);">Processing</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-center" style="color: var(--text-gray);">
+                    <div id="modalSpinner" class="spinner-border text-warning" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p id="modalMessage">Please wait while we process your ticket registration...</p>
+                </div>
+                <div class="modal-footer" style="border-top: 1px solid var(--accent-gold);">
+                    <button type="button" class="btn btn-primary" id="modalCloseButton" data-bs-dismiss="modal" style="display: none;">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Footer -->
     <footer>
         <div class="container">
@@ -158,10 +179,6 @@
                     <div class="d-flex align-items-center">
                         <img src="/Art circle logo png.png" alt="SCU Art Circle Logo" class="presented-by-logo-img">
                         <div class="ms-3">
-                            <!-- <div class="bg-light p-2 rounded">
-                                <div class="fw-bold text-dark" style="font-size: 1.8rem;">SCUART</div>
-                                <div class="small text-muted">SUITCITYUNI</div>
-                            </div> -->
                             <p class="text-light mt-2">SLIIT City Uni Art Circle.</p>
                         </div>
                     </div>
@@ -170,7 +187,7 @@
 
             <div class="text-center mt-5 pt-4 border-top border-secondary">
                 <p>© 2025 ස්වර Live in Concert. All rights reserved. | Presented by SCU Art Circle</p>
-                <p>Developed and Designed by Tehan Hewage</p>
+                <p class="developer-credit">Developed and Designed by Tehan Hewage</p>
             </div>
         </div>
     </footer>

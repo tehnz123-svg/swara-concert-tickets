@@ -153,7 +153,7 @@ document.addEventListener('DOMContentLoaded', function () {
             .then(data => {
                 console.log('Proxy Response:', data);
                 if (data.status === 'success') {
-                    alert('Thank you for your purchase! Your tickets and payment proof have been registered successfully.');
+                    alert(`Thank you for your purchase! Your submission has been received with Ticket ID: ${data.ticketId}. You will receive a confirmation email once approved.`);
                     ticketForm.reset();
                     ticketQuantity = 1;
                     updateTicketCount();

@@ -1,86 +1,164 @@
 document.addEventListener('DOMContentLoaded', function () {
+    // DOM Elements
     const ticketForm = document.getElementById('ticketForm');
     const paymentProofInput = document.getElementById('paymentProof');
-    const modal = new bootstrap.Modal(document.getElementById('ticketModal'), { backdrop: 'static', keyboard: false });
+    const modal = new bootstrap.Modal(document.getElementById('ticketModal'), { 
+        backdrop: 'static', 
+        keyboard: false 
+    });
     const modalTitle = document.getElementById('ticketModalLabel');
     const modalMessage = document.getElementById('modalMessage');
     const modalSpinner = document.getElementById('modalSpinner');
     const modalCloseButton = document.getElementById('modalCloseButton');
+    const submitButton = ticketForm.querySelector('button[type="submit"]');
 
-    function showModal(status, message) {
+    // Form Validation Messages
+    const validationMessages = {
+        required: 'Please fill in all required fields.',
+        email: 'Please enter a valid email address.',
+        whatsapp: 'Please enter a valid WhatsApp number (9-15 digits, may include +).',
+        fileType: 'Please upload a JPG, PNG, or PDF file.',
+        fileSize: 'File size exceeds 5MB limit.',
+        terms: 'You must agree to the terms and conditions.'
+    };
+
+    // Show modal with different statuses
+    function showModal(status, message, ticketId = null) {
         modalSpinner.style.display = status === 'processing' ? 'block' : 'none';
         modalCloseButton.style.display = status !== 'processing' ? 'block' : 'none';
-        modalTitle.textContent = status === 'processing' ? 'Processing' : status === 'success' ? 'Success' : 'Failed';
-        modalMessage.textContent = message;
+        
+        // Update modal appearance based on status
+        switch(status) {
+            case 'success':
+                modalTitle.textContent = 'Success!';
+                modalTitle.style.color = '#28a745';
+                modalMessage.innerHTML = `
+                    <i class="fas fa-check-circle text-success mb-3" style="font-size: 3rem;"></i>
+                    <h4 class="text-success mb-3">Registration Successful!</h4>
+                    <p>${message}</p>
+                    ${ticketId ? `<p class="small text-muted">Ticket ID: ${ticketId}</p>` : ''}
+                    <p class="mt-3">You'll receive a confirmation email shortly.</p>
+                `;
+                break;
+            case 'failed':
+                modalTitle.textContent = 'Error';
+                modalTitle.style.color = '#dc3545';
+                modalMessage.innerHTML = `
+                    <i class="fas fa-times-circle text-danger mb-3" style="font-size: 3rem;"></i>
+                    <h4 class="text-danger mb-3">Registration Failed</h4>
+                    <p>${message}</p>
+                `;
+                break;
+            default: // processing
+                modalTitle.textContent = 'Processing';
+                modalTitle.style.color = '#ffc107';
+                modalMessage.textContent = message;
+        }
+        
         modal.show();
     }
 
+    // Reset form and redirect on success
     modalCloseButton.addEventListener('click', function () {
-        modal.hide();
-        if (modalTitle.textContent === 'Success') {
+        if (modalTitle.textContent === 'Success!') {
+            ticketForm.reset();
             window.location.href = 'index.html';
         }
     });
 
-    ticketForm.addEventListener('submit', function (e) {
+    // Validate email format
+    function validateEmail(email) {
+        const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return re.test(email);
+    }
+
+    // Validate phone number
+    function validatePhone(phone) {
+        const re = /^\+?\d{9,15}$/;
+        return re.test(phone);
+    }
+
+    // Validate file
+    function validateFile(file) {
+        const allowedTypes = ['image/jpeg', 'image/png', 'application/pdf'];
+        const maxSize = 5 * 1024 * 1024; // 5MB
+        
+        if (!allowedTypes.includes(file.type)) {
+            return { valid: false, message: validationMessages.fileType };
+        }
+        
+        if (file.size > maxSize) {
+            return { valid: false, message: validationMessages.fileSize };
+        }
+        
+        return { valid: true };
+    }
+
+    // Form submission handler
+    ticketForm.addEventListener('submit', async function (e) {
         e.preventDefault();
+        
+        // Disable submit button to prevent multiple submissions
+        submitButton.disabled = true;
+        submitButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing...';
 
         // Collect form data
         const formData = new FormData(ticketForm);
-        const primaryName = formData.get('primaryName');
-        const primarySANumber = formData.get('primarySANumber');
-        const email = formData.get('email');
-        const whatsapp = formData.get('whatsapp');
+        const primaryName = formData.get('primaryName').trim();
+        const primarySANumber = formData.get('primarySANumber').trim();
+        const email = formData.get('email').trim();
+        const whatsapp = formData.get('whatsapp').trim();
         const paymentProof = formData.get('paymentProof');
         const agreeTerms = ticketForm.querySelector('#agreeTerms').checked;
 
         // Validate required fields
-        if (!primaryName || !primarySANumber || !email || !whatsapp || !agreeTerms) {
-            showModal('failed', 'Please fill in all required fields and agree to the terms.');
+        if (!primaryName || !primarySANumber || !email || !whatsapp) {
+            showModal('failed', validationMessages.required);
+            submitButton.disabled = false;
+            submitButton.innerHTML = '<i class="fas fa-lock me-2"></i>Complete Registration';
             return;
         }
 
-        // Validate payment proof
-        if (!paymentProof || paymentProof.size === 0) {
-            showModal('failed', 'Please select a valid payment proof file (JPG, PNG, or PDF).');
+        if (!agreeTerms) {
+            showModal('failed', validationMessages.terms);
+            submitButton.disabled = false;
+            submitButton.innerHTML = '<i class="fas fa-lock me-2"></i>Complete Registration';
             return;
         }
 
-        // Validate email format
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(email)) {
-            showModal('failed', 'Please enter a valid email address.');
+        if (!validateEmail(email)) {
+            showModal('failed', validationMessages.email);
+            submitButton.disabled = false;
+            submitButton.innerHTML = '<i class="fas fa-lock me-2"></i>Complete Registration';
             return;
         }
 
-        // Validate WhatsApp number
-        const phoneRegex = /^\+?\d{9,15}$/;
-        if (!phoneRegex.test(whatsapp)) {
-            showModal('failed', 'Please enter a valid WhatsApp number.');
+        if (!validatePhone(whatsapp)) {
+            showModal('failed', validationMessages.whatsapp);
+            submitButton.disabled = false;
+            submitButton.innerHTML = '<i class="fas fa-lock me-2"></i>Complete Registration';
             return;
         }
 
-        // Validate file type and size
-        const allowedTypes = ['image/jpeg', 'image/png', 'application/pdf'];
-        const maxSize = 5 * 1024 * 1024; // 5MB
-        if (!allowedTypes.includes(paymentProof.type)) {
-            showModal('failed', 'Please upload a JPG, PNG, or PDF file.');
-            return;
-        }
-        if (paymentProof.size > maxSize) {
-            showModal('failed', 'File size exceeds 5MB limit.');
+        const fileValidation = validateFile(paymentProof);
+        if (!fileValidation.valid) {
+            showModal('failed', fileValidation.message);
+            submitButton.disabled = false;
+            submitButton.innerHTML = '<i class="fas fa-lock me-2"></i>Complete Registration';
             return;
         }
 
         // Show processing modal
         showModal('processing', 'Please wait while we process your ticket registration...');
 
-        // Convert file to base64
-        const reader = new FileReader();
-        reader.onload = function (event) {
-            const base64Data = event.target.result.split(',')[1];
-            const fileName = paymentProof.name;
-            const fileType = paymentProof.type;
+        try {
+            // Convert file to base64
+            const base64Data = await new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result.split(',')[1]);
+                reader.onerror = error => reject(error);
+                reader.readAsDataURL(paymentProof);
+            });
 
             // Prepare JSON data
             const jsonData = {
@@ -89,45 +167,84 @@ document.addEventListener('DOMContentLoaded', function () {
                 email,
                 whatsapp,
                 paymentProof: {
-                    fileName,
-                    fileType,
+                    fileName: paymentProof.name,
+                    fileType: paymentProof.type,
                     data: base64Data
-                }
+                },
+                timestamp: new Date().toISOString()
             };
 
-            // Debug: Log JSON data
-            console.log('JSON Data:', jsonData);
-
             // Send data to Netlify Function
-            fetch('/.netlify/functions/proxy', {
+            const response = await fetch('/.netlify/functions/proxy', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(jsonData)
-            })
-            .then(response => {
-                console.log('Response status:', response.status);
-                if (!response.ok) {
-                    throw new Error(`HTTP error! Status: ${response.status}`);
-                }
-                return response.json();
-            })
-            .then(data => {
-                console.log('Proxy Response:', data);
-                if (data.status === 'success') {
-                    showModal('success', `Thank you for your purchase! Your submission has been received with Ticket ID: ${data.ticketId}. You will receive a confirmation email once approved.`);
-                    ticketForm.reset();
-                } else {
-                    showModal('failed', 'Registration failed: ' + data.message);
-                }
-            })
-            .catch(error => {
-                console.error('Fetch error:', error.message);
-                showModal('failed', 'Error submitting form: ' + error.message);
             });
-        };
-        reader.onerror = function () {
-            showModal('failed', 'Error reading file. Please try again.');
-        };
-        reader.readAsDataURL(paymentProof);
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+
+            const data = await response.json();
+
+            if (data.status === 'success') {
+                showModal('success', 'Thank you for your purchase! Your ticket has been reserved.', data.ticketId);
+                // Optional: Save to localStorage for reference
+                localStorage.setItem('lastTicketSubmission', JSON.stringify({
+                    name: primaryName,
+                    email: email,
+                    ticketId: data.ticketId,
+                    date: new Date().toLocaleString()
+                }));
+            } else {
+                showModal('failed', data.message || 'Registration failed. Please try again.');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            showModal('failed', 'An error occurred while processing your request. Please try again later.');
+        } finally {
+            submitButton.disabled = false;
+            submitButton.innerHTML = '<i class="fas fa-lock me-2"></i>Complete Registration';
+        }
+    });
+
+    // File input change handler for better UX
+    paymentProofInput.addEventListener('change', function() {
+        const file = this.files[0];
+        if (file) {
+            const fileValidation = validateFile(file);
+            const feedbackElement = document.getElementById('fileFeedback') || 
+                document.createElement('div');
+            
+            feedbackElement.id = 'fileFeedback';
+            feedbackElement.className = 'mt-2 small';
+            
+            if (!fileValidation.valid) {
+                feedbackElement.innerHTML = `<span class="text-danger">${fileValidation.message}</span>`;
+                submitButton.disabled = true;
+            } else {
+                feedbackElement.innerHTML = `<span class="text-success">${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB) - Ready to upload</span>`;
+                submitButton.disabled = false;
+            }
+            
+            if (!this.nextElementSibling || this.nextElementSibling.id !== 'fileFeedback') {
+                this.parentNode.insertBefore(feedbackElement, this.nextSibling);
+            }
+        }
+    });
+
+    // Add input formatting for WhatsApp number
+    const whatsappInput = ticketForm.querySelector('input[name="whatsapp"]');
+    whatsappInput.addEventListener('input', function(e) {
+        // Remove all non-digit characters except leading +
+        this.value = this.value.replace(/[^\d+]/g, '');
+        
+        // Ensure only one + at the start
+        if (this.value.indexOf('+') > 0) {
+            this.value = this.value.replace(/\+/g, '');
+        }
+        if (this.value.length > 1 && this.value[0] !== '+') {
+            this.value = this.value.replace(/\+/g, '');
+        }
     });
 });

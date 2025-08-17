@@ -988,3 +988,57 @@ footer {
 #fileFeedback {
     transition: all 0.3s ease;
 }
+
+/* Dropdown Styling */
+select.form-control {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: var(--text-gray);
+    padding: 15px 20px;
+    border-radius: 12px;
+    margin-bottom: 25px;
+    transition: all 0.3s ease;
+    font-size: 1.1rem;
+    font-family: 'Montserrat', sans-serif;
+    appearance: none; /* Remove default browser styling */
+    background-image: url('data:image/svg+xml;utf8,<svg fill="rgba(255, 215, 0, 0.6)" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>'); /* Custom arrow */
+    background-repeat: no-repeat;
+    background-position: right 15px center;
+    background-size: 20px;
+}
+
+select.form-control:focus {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: var(--accent-gold);
+    box-shadow: 0 0 0 0.25rem rgba(255, 215, 0, 0.25);
+    color: var(--text-gray);
+    outline: none;
+}
+
+select.form-control option {
+    background: var(--primary-dark);
+    color: var(--text-light);
+    font-family: 'Montserrat', sans-serif;
+}
+
+/* Ensure placeholder (disabled option) has consistent styling */
+select.form-control option[disabled][selected] {
+    color: rgba(255, 255, 255, 0.6);
+}
+
+/* Responsive adjustments for dropdowns */
+@media (max-width: 768px) {
+    select.form-control {
+        padding: 12px 15px;
+        font-size: 1rem;
+        background-size: 18px;
+    }
+}
+
+@media (max-width: 576px) {
+    select.form-control {
+        padding: 10px 12px;
+        font-size: 0.9rem;
+        background-size: 16px;
+    }
+}

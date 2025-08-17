@@ -19,7 +19,9 @@ document.addEventListener('DOMContentLoaded', function () {
         whatsapp: 'Please enter a valid WhatsApp number (9-15 digits, may include +).',
         fileType: 'Please upload a JPG, PNG, or PDF file.',
         fileSize: 'File size exceeds 5MB limit.',
-        terms: 'You must agree to the terms and conditions.'
+        terms: 'You must agree to the terms and conditions.',
+        batch: 'Please select a valid batch.',
+        faculty: 'Please select a valid faculty.'
     };
 
     // Show modal with different statuses
@@ -106,13 +108,15 @@ document.addEventListener('DOMContentLoaded', function () {
         const formData = new FormData(ticketForm);
         const primaryName = formData.get('primaryName').trim();
         const primarySANumber = formData.get('primarySANumber').trim();
+        const batch = formData.get('batch');
+        const faculty = formData.get('faculty');
         const email = formData.get('email').trim();
         const whatsapp = formData.get('whatsapp').trim();
         const paymentProof = formData.get('paymentProof');
         const agreeTerms = ticketForm.querySelector('#agreeTerms').checked;
 
         // Validate required fields
-        if (!primaryName || !primarySANumber || !email || !whatsapp) {
+        if (!primaryName || !primarySANumber || !batch || !faculty || !email || !whatsapp) {
             showModal('failed', validationMessages.required);
             submitButton.disabled = false;
             submitButton.innerHTML = '<i class="fas fa-lock me-2"></i>Complete Registration';
@@ -135,6 +139,22 @@ document.addEventListener('DOMContentLoaded', function () {
 
         if (!validatePhone(whatsapp)) {
             showModal('failed', validationMessages.whatsapp);
+            submitButton.disabled = false;
+            submitButton.innerHTML = '<i class="fas fa-lock me-2"></i>Complete Registration';
+            return;
+        }
+
+        const validBatches = ['Foundation 1', 'Foundation 2', 'Y1S1', 'Y1S2', 'Y2S1', 'Y2S2', 'Y3S1', 'Y3S2', 'Graduated'];
+        if (!validBatches.includes(batch)) {
+            showModal('failed', validationMessages.batch);
+            submitButton.disabled = false;
+            submitButton.innerHTML = '<i class="fas fa-lock me-2"></i>Complete Registration';
+            return;
+        }
+
+        const validFaculties = ['Computing', 'Engineering', 'Business', 'Humanities', 'Architecture'];
+        if (!validFaculties.includes(faculty)) {
+            showModal('failed', validationMessages.faculty);
             submitButton.disabled = false;
             submitButton.innerHTML = '<i class="fas fa-lock me-2"></i>Complete Registration';
             return;
@@ -164,6 +184,8 @@ document.addEventListener('DOMContentLoaded', function () {
             const jsonData = {
                 primaryName,
                 primarySANumber,
+                batch,
+                faculty,
                 email,
                 whatsapp,
                 paymentProof: {

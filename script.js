@@ -14,7 +14,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Countdown timer (only for index.html)
     if (document.getElementById('days')) {
-        const eventDate = new Date('August 15, 2025 15:00:00').getTime();
+        const eventDate = new Date('September 4, 2025 16:30:00').getTime();
 
         function updateCountdown() {
             const now = new Date().getTime();
@@ -150,50 +150,3 @@ function createFloatingNotes() {
 
 createFloatingNotes();
 
-
-// Background Music Control
-function addMusicControl() {
-    if (!document.querySelector('.hero-section')) return;
-    
-    const musicToggle = document.createElement('button');
-    musicToggle.className = 'music-toggle';
-    musicToggle.innerHTML = '<i class="fas fa-music"></i>';
-    musicToggle.style.position = 'fixed';
-    musicToggle.style.bottom = '20px';
-    musicToggle.style.right = '20px';
-    musicToggle.style.zIndex = '1000';
-    musicToggle.style.width = '50px';
-    musicToggle.style.height = '50px';
-    musicToggle.style.borderRadius = '50%';
-    musicToggle.style.background = 'var(--accent-gold)';
-    musicToggle.style.color = 'var(--primary-dark)';
-    musicToggle.style.border = 'none';
-    musicToggle.style.cursor = 'pointer';
-    musicToggle.style.boxShadow = '0 0 20px rgba(0,0,0,0.3)';
-    
-    document.body.appendChild(musicToggle);
-    
-    const audio = new Audio('music.m4a');
-    audio.loop = true;
-    audio.volume = 0.3;
-    
-    let isPlaying = false;
-    
-    musicToggle.addEventListener('click', () => {
-        if (isPlaying) {
-            audio.pause();
-            musicToggle.innerHTML = '<i class="fas fa-music"></i>';
-            musicToggle.style.background = 'var(--primary-medium)';
-            musicToggle.style.color = 'var(--accent-gold)';
-        } else {
-            audio.play();
-            musicToggle.innerHTML = '<i class="fas fa-pause"></i>';
-            musicToggle.style.background = 'var(--accent-gold)';
-            musicToggle.style.color = 'var(--primary-dark)';
-        }
-        isPlaying = !isPlaying;
-    });
-}
-
-// Note: Only call this if you have appropriate music rights
-addMusicControl();
